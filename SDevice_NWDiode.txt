@@ -1,0 +1,79 @@
+File {
+    Grid= "@tdr@"
+    Parameter="@parameter@"
+    Current= "@plot@"
+    Plot= "@tdrdat@"
+    Output= "@log@"
+ 
+  }
+
+
+Electrode {
+   { Name="Anode"  Voltage=0.0  }    
+   { Name="Cathode" Voltage=0.0 }
+   }
+
+ Physics {
+  Mobility(
+      DopingDependence
+      CarrierCarrierScattering 
+      HighFieldSaturation(GradQuasiFermi)
+  )
+  Recombination (SRH (DopingDependence))
+  EffectiveIntrinsicDensity (
+    BandGapNarrowing (oldSlotboom)
+  )
+  Fermi
+}
+
+
+Plot {
+   eCurrent hCurrent AvalancheGeneration ConductionCurrent
+   eAlphaAvalanche hAlphaAvalanche AugerRecombination
+   EquilibriumPotential IntrinsicDensity
+   EffectiveIntrinsicDensity  Temperature ElectricField Potential Doping
+   SpaceCharge 
+   eBarrierTunneling   hBarrierTunneling
+ conductionbandenergy valancebandenergy
+   }
+ 
+
+
+
+Math {
+   Number_of_Threads = 4
+    Iterations = 10
+    NotDamped  = 20
+    RHSMin = 1e-8
+    #Extrapolate
+    Derivatives
+    AvalDerivatives
+    ErrRef(Electron) = 1e10
+    ErrRef(Hole)     = 1e10
+    method = pardiso
+    #ComputeGradQuasiFermiAtContacts= UseQuasiFermi
+
+    transient=BE
+    #eMobilityAveraging = ElementEdge
+    #hMobilityAveraging = ElementEdge
+
+    #BreakCriteria {LatticeTemperature (MaxVal =1400)}
+   -CheckUndefinedModels
+}
+
+    
+Solve {
+
+     
+    Poisson
+    Coupled (iterations=50){Poisson Electron}
+    Coupled (iterations=50){Poisson Hole}
+    Coupled (iterations=50){Poisson Electron Hole}
+    NewCurrentFile="@Vd@_"
+        Quasistationary (
+        InitialStep=1e-7 Minstep=1e-12 MaxStep=0.1 Increment=2
+	 Goal {Name="Anode" Voltage=@Vd@})      
+        {Coupled {Poisson Electron Hole } CurrentPlot (time=(range = (0 1) intervals=50))
+}       
+}
+
