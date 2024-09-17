@@ -1,0 +1,41 @@
+
+Solve {
+
+  Coupled(Iterations=100){ Poisson }
+  Coupled{ Poisson Electron Hole }
+  
+  Quasistationary ( 
+    InitialStep=0.01 Increment=1.3
+    MaxStep =0.2 MinStep = 1e-6 
+    Goal{ Name="Base" Voltage=0.5 }
+  ){ Coupled {Poisson Electron Hole } }
+  
+  Set( "Base" mode current ) 
+  
+  Quasistationary ( 
+    InitialStep=0.01 Increment=1.3
+    MaxStep =0.2 MinStep = 1e-6 
+    Goal{ Name="Base" Current=@Ib@ }
+  ){ Coupled {Poisson Electron Hole } }
+
+    Plot (FilePrefix="n@node@_Ib@Ib@_Vc0_" )
+
+  
+  NewCurrentPrefix="n@node@_IcVc_Ib_@Ib@_"
+  
+
+  Quasistationary ( 
+    InitialStep=0.01 Increment=1.3
+    MaxStep =0.2 MinStep = 1e-6 
+    Goal{ Name="Collector" Voltage=@Vc@ }
+  ){ Coupled {Poisson Electron Hole}
+	        Plot (FilePrefix = "n@node@_Vc_V1_Ib_@Ib@_" when (Contact= "Collector" Voltage = V1)) 
+		Plot (FilePrefix = "n@node@_Vc_V2_Ib_@Ib@_" when (Contact= "Collector" Voltage = V2)) 
+		Plot (FilePrefix = "n@node@_Vc_V3_Ib_@Ib@_" when (Contact= "Collector" Voltage = V3))
+		Plot (FilePrefix = "n@node@_Vc_V4_Ib_@Ib@_" when (Contact= "Collector" Voltage = V4))  
+		Plot (FilePrefix = "n@node@_Vc_V5_Ib_@Ib@_" when (Contact= "Collector" Voltage = V5))
+		Plot (FilePrefix = "n@node@_Vc_V6_Ib_@Ib@_" when (Contact= "Collector" Voltage = V6)) 
+     }
+  
+}
+
