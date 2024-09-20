@@ -1,0 +1,206 @@
+(sde:clear)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;Vertical Dimensions;;;;;;;;;;;;;;;;;;;;;;;
+
+(define T_Sub (* 0.001 @T_Sub@))
+(define T_STI (* 0.001 @T_STI@))
+(define TN_TAP (* 0.001 @TN_TAP@))
+(define TP_TAP (* 0.001 @TP_TAP@))
+(define T_GOX (* 0.001 @T_GOX@))
+(define T_SPACER (* 0.001 @T_SPACER@))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;Lateral Dimensions;;;;;;;;;;;;;;;;;;;;;;;
+
+(define L_STI (* 0.001 @L_STI@))
+(define LN_TAP (* 0.001 @LN_TAP@))
+(define LP_TAP (* 0.001 @LP_TAP@))
+(define L_G (* 0.001 @L_G@))
+(define L_SPACER (* 0.001 @L_SPACER@))
+(define L_Count (* 0.001 @L_Count@))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;Doping variables;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define Sub_Dop @Sub_Dop@)
+(define PeakPos_PWG @PeakPos_PWG@)
+(define PeakDop_PWG @PeakDop_PWG@)
+(define DepthPos_PWG @DepthPos_PWG@)
+(define DepthDop_PWG @DepthDop_PWG@)
+(define PeakPos_VtImp @PeakPos_VtImp@)
+(define PeakDop_VtImp @PeakDop_VtImp@)
+(define DepthPos_VtImp @DepthPos_VtImp@)
+(define DepthDop_VtImp @DepthDop_VtImp@)
+(define PeakPos_HaloImp @PeakPos_HaloImp@)
+(define PeakDop_HaloImp @PeakDop_HaloImp@)
+(define DepthPos_HaloImp @DepthPos_HaloImp@)
+(define DepthDop_HaloImp @DepthDop_HaloImp@)
+(define NTAP_Dop @NTAP_Dop@)
+(define PTAP_Dop @PTAP_Dop@)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;Device Boundary;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define L_Sub (+ (* L_STI 4) (* LP_TAP 2) (* LN_TAP 2) L_G))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;Substratre;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdegeo:create-rectangle (position 0 0 0) (position L_Sub T_Sub 0) "Silicon" "substrate")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;STI;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdegeo:create-rectangle (position 0 0 0) (position L_STI T_STI 0) "SiO2" "STI1")
+(sdegeo:fillet-2d (find-vertex-id (position L_STI T_STI 0) ) 0.025)
+
+(sdegeo:create-rectangle (position (+ L_STI LP_TAP) 0 0) (position (+ (* L_STI 2) LP_TAP) T_STI 0) "SiO2" "STI2")
+(sdegeo:fillet-2d (find-vertex-id (position (+ L_STI LP_TAP) T_STI 0) ) 0.025)
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 2) LP_TAP) T_STI 0) ) 0.025)
+
+(sdegeo:create-rectangle (position (+ (* L_STI 2) LP_TAP (* LN_TAP 2) L_G) 0 0) (position (+ (* L_STI 3) LP_TAP (* LN_TAP 2) L_G) T_STI 0) "SiO2" "STI3")
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 2) LP_TAP (* LN_TAP 2) L_G) T_STI 0) ) 0.025)
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 3) LP_TAP (* LN_TAP 2) L_G) T_STI 0) ) 0.025)
+
+(sdegeo:create-rectangle (position (+ (* L_STI 3) (* LP_TAP 2) (* LN_TAP 2) L_G) 0 0) (position (+ (* L_STI 4) (* LP_TAP 2) (* LN_TAP 2) L_G) T_STI 0) "SiO2" "STI4")
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 3) (* LP_TAP 2) (* LN_TAP 2) L_G) T_STI 0) ) 0.025)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Gate Oxide and Spacer;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdegeo:create-rectangle (position (+ (* L_STI 2) LP_TAP LN_TAP (- 0 0.007)) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP L_G 0.007) (- 0 T_GOX) 0) "SiO2" "GateOxide")
+
+(sdegeo:create-rectangle (position (+ (* L_STI 2) LP_TAP LN_TAP (- 0 0.007 L_SPACER)) 0 0) (position (+ (* L_STI 2) LP_TAP LN_TAP (- 0 0.007)) (- 0 T_SPACER) 0) "SiO2" "Spacer1")
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 2) LP_TAP LN_TAP (- 0 0.007 L_SPACER)) (- 0 T_SPACER) 0) ) 0.002)
+
+(sdegeo:create-rectangle (position (+ (* L_STI 2) LP_TAP LN_TAP L_G 0.007) 0 0) (position (+ (* L_STI 2) LP_TAP LN_TAP L_G L_SPACER 0 0.007) (- 0 T_SPACER) 0) "SiO2" "Spacer2")
+(sdegeo:fillet-2d (find-vertex-id (position (+ (* L_STI 2) LP_TAP LN_TAP L_G L_SPACER 0 0.007) (- 0 T_SPACER) 0) ) 0.002)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;P TAPS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdegeo:create-rectangle (position L_STI 0 0) (position (+ L_STI LP_TAP) TP_TAP 0) "Silicon" "PTAP_left")
+(sdegeo:create-rectangle (position (+ (* L_STI 3) LP_TAP (* LN_TAP 2) L_G) 0 0) (position (+ (* L_STI 3) (* LP_TAP 2) (* LN_TAP 2) L_G) TP_TAP 0) "Silicon" "PTAP_right")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;Doping Layers;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-constant-profile "Const.Substrate" "BoronActiveConcentration" @Sub_Dop@ )
+(sdedr:define-constant-profile-region "PlaceCD.Substrate" "Const.Substrate" "substrate" )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;PWELL;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-refinement-window "BaseLine.pplus1" "Line" (position 0 0 0) (position L_Sub 0 0) )
+
+(sdedr:define-gaussian-profile "Gauss.Pwell1" "BoronActiveConcentration"
+"PeakPos" @PeakPos_PWG@ "PeakVal" @PeakDop_PWG@
+"ValueAtDepth" @DepthDop_PWG@ "Depth" @DepthPos_PWG@ "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_pwell1" "Gauss.Pwell1" "BaseLine.pplus1" "Both" "NoReplace" "Eval")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Vt_Implant;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-refinement-window "BaseLine.Pwellvtimp" "Line" (position (+ (* L_STI 2) LN_TAP LP_TAP) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP L_G) 0 0) )
+
+(sdedr:define-gaussian-profile "Gauss.Pwellvtimp" "BoronActiveConcentration"
+"PeakPos" 0 "PeakVal" @PeakDop_VtImp@ "ValueAtDepth" @DepthDop_VtImp@ "Depth" @DepthPos_VtImp@ "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_Pwellvtimp" "Gauss.Pwellvtimp" "BaseLine.Pwellvtimp" "Positive" "NoReplace" "Eval")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Halo_Implant;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-refinement-window "BaseLine.Pwellhimp1" "Line" (position (+ (* L_STI 2) LN_TAP LP_TAP) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP 0.005) 0 0) )
+
+(sdedr:define-gaussian-profile "Gauss.Pwellhimp1" "BoronActiveConcentration"
+"PeakPos" 0 "PeakVal" @PeakDop_HaloImp@
+"ValueAtDepth" @DepthDop_HaloImp@ "Depth" @DepthPos_HaloImp@ "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_Pwellhimp1" "Gauss.Pwellhimp1" "BaseLine.Pwellhimp1" "Positive" "NoReplace" "Eval")
+
+
+(sdedr:define-refinement-window "BaseLine.Pwellhimp2" "Line" (position (+ (* L_STI 2) LN_TAP LP_TAP (- L_G 0.005)) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP L_G) 0 0) )
+
+(sdedr:define-gaussian-profile "Gauss.Pwellhimp2" "BoronActiveConcentration"
+"PeakPos" 0 "PeakVal" @PeakDop_HaloImp@
+"ValueAtDepth" @DepthDop_HaloImp@ "Depth" @DepthPos_HaloImp@ "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_Pwellhimp2" "Gauss.Pwellhimp2" "BaseLine.Pwellhimp2" "Positive" "NoReplace" "Eval")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;PWELL_TAPING;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-constant-profile "Const.Ptap" "BoronActiveConcentration" PTAP_Dop )
+(sdedr:define-constant-profile-region "PlaceCD.Ptap" "Const.Ptap" "PTAP_left")
+
+(sdedr:define-constant-profile "Const.Ptap1" "BoronActiveConcentration" PTAP_Dop )
+(sdedr:define-constant-profile-region "PlaceCD.Ptap1" "Const.Ptap1" "PTAP_right")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;NPLUS_SOURCE_DRAIN;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-refinement-window "BaseLine.Ntap" "Line" (position (+ (* L_STI 2) LP_TAP) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP) 0 0))
+
+(sdedr:define-gaussian-profile "Gauss.Ntap" "ArsenicActiveConcentration" "PeakPos" 0 "PeakVal" @NTAP_Dop@ "ValueAtDepth" 1e16 "Depth" TN_TAP "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_Ntap" "Gauss.Ntap" "BaseLine.Ntap" "Positive" "NoReplace" "Eval")
+
+
+(sdedr:define-refinement-window "BaseLine.Ntap1" "Line" (position (+ (* L_STI 2) LP_TAP LN_TAP L_G) 0 0) (position (+ (* L_STI 2) (* LN_TAP 2) LP_TAP L_G) 0 0))
+
+(sdedr:define-gaussian-profile "Gauss.Ntap1" "ArsenicActiveConcentration" "PeakPos" 0 "PeakVal" @NTAP_Dop@ "ValueAtDepth" 1e16 "Depth" TN_TAP "Gauss" "Factor" 0)
+
+(sdedr:define-analytical-profile-placement "Place_Ntap1" "Gauss.Ntap1" "BaseLine.Ntap1" "Positive" "NoReplace" "Eval")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Contacts;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdegeo:define-contact-set "PW_Contact" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "PW_Contact")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position (+ L_STI (/ L_Count 2)) 0 0)))) "PW_Contact")
+
+(sdegeo:define-contact-set "PW_Contact" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "PW_Contact")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position (+ (* L_STI 3) LP_TAP (* LN_TAP 2) L_G (/ L_Count 2)) 0 0)))) "PW_Contact")
+
+(sdegeo:define-contact-set "Source" 4 (color:rgb 1 0 0 ) "##")
+(sdegeo:set-current-contact-set "Source")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position (+ (* L_STI 2) LP_TAP (/ L_Count 2)) 0 0)))) "Source")
+
+(sdegeo:define-contact-set "Drain" 4 (color:rgb 1 0 0 ) "##")
+(sdegeo:set-current-contact-set "Drain")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position (+ (* L_STI 2) LP_TAP LN_TAP L_G (/ L_Count 2)) 0 0)))) "Drain")
+
+
+## Creation of Gate contact ###
+
+(define Gate (sdegeo:create-rectangle (position (+ (* L_STI 2) LN_TAP LP_TAP (- 0 0.007)) (- 0 T_GOX) 0) (position (+ (* L_STI 2) LN_TAP LP_TAP L_G 0.007) (- 0 T_GOX T_SPACER) 0) "PolySilicon" "GateContact"))
+(sdegeo:define-contact-set "Gate" 4 (color:rgb 1 0 0) "##")
+(sdegeo:set-current-contact-set "Gate") 
+(sdegeo:set-contact-boundary-edges Gate)
+(sdegeo:delete-region Gate)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Meshing;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(sdedr:define-refinement-window "RefWin.up" "Rectangle" (position 0 0 0) (position L_Sub T_Sub 0))
+(sdedr:define-refinement-size "RefDef.up" 1 1 0.1 0.1)
+(sdedr:define-refinement-function "RefDef.up" "MaxLenInt" "Silicon" "SiO2" 0.003 1.8)
+(sdedr:define-refinement-placement "PlaceRF1.up" "RefDef.up" "RefWin.up")
+(sdedr:define-refinement-window "RefWin1.up" "Rectangle" (position 0 0 0) (position L_Sub TN_TAP 0))
+(sdedr:define-refinement-size "RefDef1.up" 0.005 0.005 0.001 0.001)
+(sdedr:define-refinement-function "RefDef1.up" "MaxLenInt" "Silicon" "SiO2" 0.001 1.5)
+(sdedr:define-refinement-placement "PlaceRF2.up" "RefDef1.up" "RefWin1.up")
+(sdedr:define-refinement-size "REF-MESH" 0.1 0.05 0 0.001 0.005 0)
+(sdedr:define-refinement-function "REF-MESH" "DopingConcentration" "MaxTransDiff" 1)
+(sdedr:define-refinement-window "RefWin.drn" "Rectangle" (position 0 0 0) (position L_Sub DepthPos_PWG 0) )
+(sdedr:define-refinement-placement "Pl-siz" "REF-MESH" "RefWin.drn")
+(sdedr:define-refinement-size "REF-MESH1" 0.01 0.002 0 0.005 0.001 0)
+(sdedr:define-refinement-function "REF-MESH1" "DopingConcentration" "MaxTransDiff" 1)
+(sdedr:define-refinement-window "RefWin.drn1" "Rectangle" (position (+ (* L_STI 2) LN_TAP LP_TAP (- 0 0.007)) 0 0) (position (+ (* L_STI 2) LN_TAP LP_TAP L_G 0.007) (- 0 T_GOX T_SPACER) 0) )
+(sdedr:define-refinement-placement "Pl-siz1" "REF-MESH1" "RefWin.drn1")
+(sde:build-mesh "snmesh" "-a -c conforming" "n@node@_msh")
+
+
