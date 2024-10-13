@@ -1,0 +1,53 @@
+define Substrate_Dop @Substrate_Dop@
+define NW_dose1 @NW_dose1@
+define Eg_NW_dose1 @Eg_NW_dose1@
+define sac_ox_time @sac_ox_time@
+define diff_ox_temp @diff_ox_temp@
+define Time_s @Time_s@
+define Temp @Temp@
+define Tilt_Ang @Tilt_Ang@
+
+# 1D Grid definition
+# ------------------
+
+line x location= 0.0      spacing=  0.1<nm> tag= SiTop  
+line x location= 0.05      spacing=  0.2<nm> tag= SiTop                                        
+line x location= 0.75<um>  spacing= 0.5<nm>     
+line x location= 2.0<um>  spacing= 1<nm> tag= SiBottom
+
+# Initial simulation domain
+# -------------------------
+
+region Silicon xlo= SiTop xhi= SiBottom 
+
+
+# Initialize the simulation
+# -------------------------
+
+init concentration= $Substrate_Dop<cm-3> field= Boron 
+
+AdvancedCalibration
+
+# Global Mesh settings for automatic meshing in newly generated layers
+# --------------------------------------------------------------------
+
+grid set.min.normal.size= 0.2<nm> set.normal.growth.ratio.2d= 1.1
+
+
+gas_flow name= O2_1_N2_1 pressure= 1<atm> flowO2= 1.2<l/min> flowN2= 1.0<l/min>
+diffuse temperature= $diff_ox_temp<C>  time= $sac_ox_time<min> gas.flow= O2_1_N2_1
+
+select z=1
+layers
+
+implant Phosphorus sentaurus.mc dose=$NW_dose1<cm-2>  energy=$Eg_NW_dose1<keV> tilt= 7<degree> rotation= 0<degree>
+diffuse temperature=$Temp<C> time=$Time_s<s> 
+
+
+
+SetPlxList {PActive}
+WritePlx   n@node@_1Danneal1.plx
+
+
+exit
+
