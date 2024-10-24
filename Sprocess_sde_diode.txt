@@ -1,0 +1,61 @@
+(sdeio:read-tdr "n@previous@_fps")
+
+
+(define STI_L (* 0.001 @STI_L@))
+(define PP_NW (* 0.001 @PP_NW@))
+(define NP_NW (* 0.001 @NP_NW@))
+(define OL 0.05)
+(define origin 0)
+(define ST 0)
+(define SB 2)
+(define L_Count 0.1)
+
+(define a (+ origin PP_NW))
+(define b (+ a STI_L))
+(define c (+ b NP_NW))
+
+(define p (- origin PP_NW))
+(define q (- p STI_L))
+(define r (- q NP_NW))
+
+
+#(sdegeo:set-default-boolean "BAB")
+
+(sdegeo:define-contact-set "Cathode" 4 (color:rgb 1 0 0 ) "##")
+(sdegeo:set-current-contact-set "Cathode")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ b (/ L_Count 2)) 0)))) "Cathode")
+
+(sdegeo:define-contact-set "Cathode" 4 (color:rgb 1 0 0 ) "##")
+(sdegeo:set-current-contact-set "Cathode")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ r (/ L_Count 2)) 0)))) "Cathode")
+
+(sdegeo:define-contact-set "Anode" 4 (color:rgb 1 0 0 ) "##")
+(sdegeo:set-current-contact-set "Anode")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 0 0)))) "Anode")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Meshing;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(sdedr:define-refinement-window "RefWin.up" "Rectangle" (position 0 r 0) (position SB c 0))
+(sdedr:define-refinement-size "RefDef.up" 0.5 0.5 0.25 0.25)
+(sdedr:define-refinement-function "RefDef.up" "MaxLenInt" "Silicon" "SiO2" 0.003 1.8)
+(sdedr:define-refinement-placement "PlaceRF1.up" "RefDef.up" "RefWin.up")
+
+
+(sdedr:define-refinement-size "REF-MESH" 0.1 0.03 0 0.005 0.005 0)
+(sdedr:define-refinement-function "REF-MESH" "DopingConcentration" "MaxTransDiff" 1)
+(sdedr:define-refinement-window "RefWin.drn" "Rectangle" (position 0 r 0) (position 0.8 c 0) )
+(sdedr:define-refinement-placement "Pl-siz" "REF-MESH" "RefWin.drn")
+
+(sdedr:define-refinement-size "REF-MESH1" 0.01 0.01 0 0.005 0.005 0)
+(sdedr:define-refinement-function "REF-MESH1" "DopingConcentration" "MaxTransDiff" 1)
+(sdedr:define-refinement-window "RefWin.drn1" "Rectangle" (position 0 r 0) (position 0.1 c 0) )
+(sdedr:define-refinement-placement "Pl-siz1" "REF-MESH1" "RefWin.drn1")
+
+;(sdedr:define-refinement-size "REF-MESH" 0.25 0.25 0 0.0025 0.005 0)
+;(sdedr:define-refinement-function "REF-MESH" "DopingConcentration" "MaxTransDiff" 1)
+;(sdedr:define-refinement-window "RefWin.drn" "Rectangle" (position 0 r 0) (position 2 c 0) )
+;(sdedr:define-refinement-placement "Pl-siz" "REF-MESH" "RefWin.drn")
+
+(sde:build-mesh "" "n@node@_msh")
+
