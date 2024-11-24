@@ -1,0 +1,81 @@
+File {
+    Grid= "@tdr@"
+    Parameter="@parameter@"
+    Current= "@plot@"
+    Plot= "@tdrdat@"
+    Output= "@log@"
+ 
+  }
+
+
+Electrode {
+
+  { Name="PW_Contact" Voltage= 0.0  }
+  { Name="Source" Voltage= 0.0  }
+  { Name="Drain" Voltage= 0.0  }
+  { Name="Gate" Voltage= @Vgs@  workfunction=@wf@}
+}
+
+Physics{
+        EffectiveintrinSiDensity(OldSlotboom)
+        Fermi
+	eQuantumPotential
+	Mobility(
+                DopingDependence
+                CarrierCarrierScattering
+                eHighFieldsaturation(GradQuasiFermi)
+		hHighFieldsaturation(GradQuasiFermi)
+		Enormal
+		)
+ Recombination(
+              SRH(DopingDep)
+              Auger
+
+              )
+	}
+
+
+Plot {
+   eCurrent hCurrent AvalancheGeneration ConductionCurrent
+   eAlphaAvalanche hAlphaAvalanche AugerRecombination
+   EquilibriumPotential IntrinsicDensity
+   EffectiveIntrinsicDensity  Temperature ElectricField Potential Doping
+   SpaceCharge 
+   eBarrierTunneling   hBarrierTunneling
+ conductionbandenergy valancebandenergy
+   }
+ 
+
+
+
+Math {
+   Number_of_Threads = 4
+    Iterations = 10
+    NotDamped  = 20
+    RHSMin = 1e-8
+    Derivatives
+    AvalDerivatives
+    ErrRef(Electron) = 1e10
+    ErrRef(Hole)     = 1e10
+    method = pardiso
+
+    transient=BE
+   -CheckUndefinedModels
+}
+
+    
+Solve {
+
+     
+    Poisson
+    Coupled (iterations=50){Poisson Electron}
+    Coupled (iterations=50){Poisson Hole}
+    Coupled (iterations=50){Poisson Electron Hole}
+    NewCurrentFile="@Vd@_"
+        Quasistationary (
+        InitialStep=1e-7 Minstep=1e-12 MaxStep=0.1 Increment=2
+	 Goal {Name="Drain" Voltage=@Vd@})      
+        {Coupled {Poisson Electron Hole } CurrentPlot (time=(range = (0 1) intervals=50))
+	Plot ( FilePrefix = "n@node@_NS_" Time = ( range = (0 1) Intervals= 8 ) NoOverwrite )
+}       
+}

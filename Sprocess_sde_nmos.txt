@@ -1,0 +1,77 @@
+(sdeio:read-tdr "n@previous@_fps")
+(define Tox (* 0.001 @Tox@))
+(define GH 0.120)
+(define Lg (* 0.001 @Lg@))
+(define PP_PW (* 0.001 @PP_PW@))
+(define NPD_PW (* 0.001 @NPD_PW@))
+(define NPS_PW (* 0.001 @NPS_PW@))
+(define STI_L (* 0.001 @STI_L@))
+(define STI_Depth (* 0.001 @STI_Depth@))
+(define OL 0.050)
+(define origin 0)
+(define ST 0)
+(define SB 2)
+(define L_Count 0.1)
+
+
+(define a (+ origin (/ Lg 2)))
+(define b (+ a NPD_PW))
+(define c (+ b STI_L))
+(define d (+ c PP_PW))
+(define e (+ d STI_L))
+
+(define p (- origin (/ Lg 2)))
+(define q (- p NPS_PW))
+(define r (- q STI_L))
+(define s (- r PP_PW))
+(define t (- s STI_L))
+
+(define GHE (+ GH 0.001))
+
+#(sdegeo:set-default-boolean "BAB")
+
+
+(sdegeo:define-contact-set "PW_Contact" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "PW_Contact")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ s (/ L_Count 2)) 0)))) "PW_Contact")
+
+(sdegeo:define-contact-set "PW_Contact" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "PW_Contact")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ c (/ L_Count 2)) 0)))) "PW_Contact")
+
+(sdegeo:define-contact-set "Source" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "Source")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ q (/ L_Count 2)) 0)))) "Source")
+
+(sdegeo:define-contact-set "Drain" 4 (color:rgb 1 1 0 ) "##")
+(sdegeo:set-current-contact-set "Drain")
+(sdegeo:set-contact-edges (list (car (find-edge-id (position 0 (+ a (/ L_Count 2)) 0)))) "Drain")
+
+## Creation of Gate contact ### 
+(define Gate
+(sdegeo:create-rectangle 
+(position (- 0 Tox) (- p 0.001) 0) 
+(position (- 0 0.0515) (+ a 0.001) 0)
+"PolySilicon" "GateContact"))
+
+(sdegeo:define-contact-set "Gate" 4 (color:rgb 1 0 0) "##")
+(sdegeo:set-current-contact-set "Gate")
+(sdegeo:set-contact-boundary-edges Gate)
+(sdegeo:delete-region Gate)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Meshing;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(sdedr:define-refinement-window "RefWin.up" "Rectangle" (position 0 t 0) (position 0.75 e 0))
+(sdedr:define-refinement-size "RefDef.up" 0.1 0.1 0.001 0.001)
+(sdedr:define-refinement-function "RefDef.up" "MaxLenInt" "Silicon" "SiO2" 0.01 2 "DoubleSide")
+(sdedr:define-refinement-function "RefDef.up" "DopingConcentration" "MaxTransDiff" 0.5)
+(sdedr:define-refinement-placement "PlaceRF1.up" "RefDef.up" "RefWin.up")
+
+(sdedr:define-refinement-window "RefWin.drn1" "Rectangle" (position 0 t 0) (position SB e 0) )
+(sdedr:define-refinement-size "REF-MESH1" 1 1 0.05 0.05)
+(sdedr:define-refinement-function "REF-MESH1" "DopingConcentration" "MaxTransDiff" 1)
+(sdedr:define-refinement-placement "Pl-siz1" "REF-MESH1" "RefWin.drn1")
+
+
+(sde:build-mesh "" "n@node@_msh")
+
+
