@@ -1,0 +1,170 @@
+define Tox @Tox@ 
+define GH 50
+define Lg @Lg@
+define NP_NW @NP_NW@
+define PPD_NW @PPD_NW@
+define PPS_NW @PPS_NW@
+define STI_L @STI_L@
+define OL 10
+define origin 0
+define ST 0
+define SB 2
+define STI_Depth @STI_Depth@
+define STI_Angle @STI_Angle@
+define tilt_angle @tilt_angle@
+
+define NW_dose1 @NW_dose1@
+define Eg_NW_dose1 @Eg_NW_dose1@
+
+define Vt_Imp_Dose @Vt_Imp_Dose@
+define Eg_Vt_Imp @Eg_Vt_Imp@
+
+define Halo_Imp_Dose @Halo_Imp_Dose@
+define Eg_Halo_Imp @Eg_Halo_Imp@
+
+
+set a [expr $origin + ($Lg/2)]
+set b [expr $a + $PPD_NW]
+set c [expr $b + $STI_L]
+set d [expr $c + $NP_NW]
+set e [expr $d + $STI_L]
+
+set p [expr $origin - ($Lg/2)]
+set q [expr $p - $PPS_NW]
+set r [expr $q - $STI_L]
+set s [expr $r - $NP_NW]
+set t [expr $s - $STI_L]
+
+set GHE [expr $GH + 0.001]
+
+AdvancedCalibration
+
+
+####### USE THIS COMMAND TO SPEED-UP THE SIMULATION. COMMENT IF GIVES ERROR ########################## 
+#math numThreadsMC = 4         
+######################################################################################################
+
+line x location=$ST<nm>   spacing= 1.0<nm>  tag=SiTop
+line x location=600.0<nm>  spacing=5.0<nm> 
+line x location=$SB<um>  spacing=500.0<nm> tag=SiBottom      
+
+line y location=$t<nm>  spacing=100.0<nm>  tag=left 
+line y location=$e<nm>  spacing=100.0<nm>  tag=Right       
+
+region silicon xlo=SiTop xhi=SiBottom ylo=left yhi=Right
+
+
+init concentration=5e+15<cm-3> field=Boron
+
+#------------------- Scrificial Oxide Layer --------------------------------
+deposit material= {Oxide} type=isotropic time=1.0 rate= {0.01}
+diffuse temperature=1100<C> time=40<min> 
+
+struct tdr= n@node@_PMOS1
+#------------------- N-Well Formation --------------------------------
+
+implant  Phosphorus sentaurus.mc  dose=$NW_dose1  energy=$Eg_NW_dose1 tilt=0 rotation=0
+implant  Phosphorus sentaurus.mc  dose=$NW_dose1  energy=$Eg_NW_dose1 tilt=0 rotation=90
+implant  Phosphorus sentaurus.mc  dose=$NW_dose1  energy=$Eg_NW_dose1 tilt=0 rotation=180
+implant  Phosphorus sentaurus.mc  dose=$NW_dose1  energy=$Eg_NW_dose1 tilt=0 rotation=270
+
+
+#------------Vt Implant ------------------------
+mask name=mask_vt left=$p<nm> right=$a<nm>
+implant  Phosphorus sentaurus.mc mask=mask_vt dose=$Vt_Imp_Dose<cm-2>  energy=$Eg_Vt_Imp<keV> tilt=0 rotation=0
+implant  Phosphorus sentaurus.mc mask=mask_vt dose=$Vt_Imp_Dose<cm-2>  energy=$Eg_Vt_Imp<keV> tilt=0 rotation=90
+implant  Phosphorus sentaurus.mc mask=mask_vt dose=$Vt_Imp_Dose<cm-2>  energy=$Eg_Vt_Imp<keV> tilt=0 rotation=180
+implant  Phosphorus sentaurus.mc mask=mask_vt dose=$Vt_Imp_Dose<cm-2>  energy=$Eg_Vt_Imp<keV> tilt=0 rotation=270
+
+
+#------------Halo Implant ------------------------
+mask name=mask_HaloImp1 left=[expr $p - 5]<nm> right=[expr $p + 5]<nm>
+mask name=mask_HaloImp2 left=[expr $a - 5]<nm> right=[expr $a + 5]<nm>
+mask name=mask_HaloImp bool="mask_HaloImp1 + mask_HaloImp2"
+
+implant  Phosphorus sentaurus.mc mask=mask_HaloImp dose=$Halo_Imp_Dose<cm-2>  energy=$Eg_Halo_Imp<keV> tilt=$tilt_angle rotation=0
+implant  Phosphorus sentaurus.mc mask=mask_HaloImp dose=$Halo_Imp_Dose<cm-2>  energy=$Eg_Halo_Imp<keV> tilt=$tilt_angle rotation=90
+implant  Phosphorus sentaurus.mc mask=mask_HaloImp dose=$Halo_Imp_Dose<cm-2>  energy=$Eg_Halo_Imp<keV> tilt=$tilt_angle rotation=180
+implant  Phosphorus sentaurus.mc mask=mask_HaloImp dose=$Halo_Imp_Dose<cm-2>  energy=$Eg_Halo_Imp<keV> tilt=$tilt_angle rotation=270
+
+diffuse temperature=1050<C> time=25<s> 
+strip oxide
+struct tdr= n@node@_PMOS2
+
+#------ Trench STI----------------------
+
+mask name=trench1_mask left=$b<nm> right=$c<nm>
+mask name=trench2_mask left=$d<nm> right=$e<nm>
+mask name=trench3_mask left=$r<nm> right=$q<nm>
+mask name=trench4_mask left=$t<nm> right=$s<nm>
+
+mask name=trench5_mask bool="trench1_mask + trench2_mask"
+mask name=trench6_mask bool="trench5_mask + trench3_mask"
+mask name=trench_mask bool="trench6_mask + trench4_mask"
+
+deposit nitride type=anisotropic thickness=0.14<um> mask=trench_mask
+etch type=trapezoidal Si  thickness=[expr $STI_Depth]<nm> angle=$STI_Angle
+etch type=cmp coord=0.0 material=all
+
+deposit Oxide type=isotropic thickness=0.006<um>
+deposit nitride type=isotropic thickness=0.014<um>
+deposit Oxide type=isotropic thickness=0.4<um>
+etch type=cmp coord=0.0 material=all
+struct tdr= n@node@_PMOS3
+
+#-------------------------ADD REFINEMENT---------------------
+
+refinebox silicon min= { $origin<nm> $q<nm>} max= {0.0 $b<nm> } \
+xrefine= {0.001 0.001 0.001} yrefine= {0.001 0.001 0.001} add
+refinebox remesh
+
+#----------------- Gate Formation -------------------------------
+
+deposit Oxide type=isotropic thickness=$Tox<nm>
+
+#----------------- Poly Deposition and patterning-------------------------------
+
+deposit poly type=anisotropic thickness=$GH<nm>
+implant  Boron dose=1e15<cm-2> energy=2.5<keV> tilt=2 rotation=0
+mask name=gate_depo left=$p<nm> right=$a<nm> 
+etch  poly mask=gate_depo type=anisotropic thickness=$GHE<nm> 
+deposit Oxide type=isotropic thickness=5<nm>
+
+#-------Poly Predoping Spike Anneal -------------------------
+diffuse temperature=950<C> time=1<s>
+etch  Oxide type=anisotropic thickness=17<nm>
+# -------------------------------------------------------------------------------------------------
+struct tdr= n@node@_PMOS4
+## --------------------------------------------Final P+ formation------------------------
+
+mask name=pp_imp1 left=[expr $a + 100]<nm> right=[expr $b + $OL]<nm> 
+mask name=pp_imp2 left=[expr $q - $OL]<nm> right=[expr $p - 100]<nm>  
+mask name=pp_imp bool="pp_imp1 + pp_imp2"
+ 
+implant  BF2 sentaurus.mc mask=pp_imp   dose=7.5e14<cm-2>  energy=0.8<keV>  tilt=0 rotation=0
+
+## --------------------------------------------LDD P+ formation------------------------
+
+mask name=lpp_imp1 left=[expr $a + $OL]<nm> right=[expr $b + $OL]<nm> 
+mask name=lpp_imp2 left=[expr $q - $OL]<nm> right=[expr $p - $OL]<nm>  
+mask name=lpp_imp bool="lpp_imp1 + lpp_imp2"
+ 
+implant  BF2 sentaurus.mc mask=lpp_imp   dose=1e13<cm-2>  energy=0.2<keV>  tilt=0 rotation=0
+implant  BF2 sentaurus.mc mask=lpp_imp   dose=1e13<cm-2>  energy=0.2<keV>  tilt=0 rotation=0
+implant  BF2 sentaurus.mc mask=lpp_imp   dose=1e13<cm-2>  energy=0.2<keV>  tilt=0 rotation=0
+implant  BF2 sentaurus.mc mask=lpp_imp   dose=1e13<cm-2>  energy=0.2<keV>  tilt=0 rotation=0
+
+
+##---------------------------------------- Final n+ formation # Energy multiply by 0.75 #2x----------------------------------
+mask name=np_imp1 left=[expr $s - $OL]<nm> right=[expr $r + $OL]<nm> 
+mask name=np_imp2 left=[expr $c - $OL]<nm> right=[expr $d + $OL]<nm> 
+mask name=np_imp bool="np_imp1 + np_imp2" 
+
+implant  As  sentaurus.mc mask=np_imp   dose=5e14<cm-2>  energy=0.35<keV> tilt=0 rotation=0
+
+diffuse temperature=1025<C> time=10<s> 
+
+struct tdr = n@node@ !interfaces 
+
+exit
+
