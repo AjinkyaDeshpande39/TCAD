@@ -1,0 +1,127 @@
+Device NMOS {
+
+  Electrode{
+    { Name="PW_Contact" Voltage=0.0 }
+    { Name="Source"    Voltage=0.0 }
+    { Name="Drain"     Voltage=0.0 }
+    { Name="Gate"      Voltage=0.0 workfunction=@wf@ }
+    
+  }
+
+  File{
+     Grid    = "@tdr@"  
+     Plot    = "@tdrdat@"
+     Current = "@plot@"
+     Param   = "@parameter@"
+  }
+
+  Physics{
+    EffectiveintrinSiDensity(OldSlotBoom)
+    Mobility( 
+             DopingDependence 
+	     eHighFieldSaturation(GradQuasiFermi)
+             eHighFieldSaturation(GradQuasiFermi)
+             Enormal )
+Recombination(
+	     SRH(DopingDep)
+ #            Avalanche(UniBo2)
+              Auger
+             )
+    
+  }
+
+}
+
+#EndofDevice
+
+File{
+   Output = "@log@"
+ACExtract="@acplot@"
+}
+
+Plot{
+    eDensity hDensity
+    TotalCurrent/Vector eCurrent/Vector hCurrent/Vector
+    eMobility hMobility
+    eVelocity hVelocity
+    eQuasiFermi hQuasiFermi
+    eTemperature hTemperature Temperature
+    ElectricField/Vector Potential SpaceCharge eEnormal hEnormal
+    Doping DonorConcentration AcceptorConcentration
+    SRH Band2Band Auger 
+    AvalancheGeneration eAvalancheGeneration hAvalancheGeneration
+    eGradQuasiFermi/Vector hGradQuasiFermi/Vector
+    eEparallel hEparallel eENormal hENormal
+    BandGap
+    BandGapNarrowing
+    Affinity
+    ConductionBand ValenceBand
+    eBarrierTunneling hBarrierTunneling * BarrierTunneling
+    eTrappedCharge hTrappedCharge
+    eGapStatesRecombination hGapStatesRecombination
+    eDirectTunnel hDirectTunnel
+    *--Stress related data
+    StressXX StressYY StressZZ StressXY StressXZ StressYZ
+}
+
+Math{
+  Extrapolate
+  Derivatives
+  RelErrControl
+  Digits=5
+  Notdamped=100
+  Iterations=25
+  ExitOnFailure
+  TensorGridAniso
+  StressMobilityDependence=TensorFactor
+  RelTermMinDensity=2e8 
+  DrForceRefDens=1e12
+  Transient=BE
+  Method=Blocked
+  SubMethod=ParDiSo
+ *Uncomment if have 4 CPUs or more
+ #Number_of_Threads=16
+ #-CheckUndefinedModels
+}
+
+System{
+  
+
+  NMOS nmos1 ("Gate"=g "Source"=s "Drain"=d "PW-Contact"=b)
+  Vsource_pset vg (g 0) { dc = 0.0 }
+  Vsource_pset vs (s 0) { dc = 0.0 } 
+  Vsource_pset vd (d 0) { dc = 0.0 }
+  Vsource_pset vb (b 0) { dc = 0.0 } 
+  #Capacitor_pset cout ( out 0 ){ capacitance = 3e-14 }
+
+  #Plot "n@node@_sys_des.plt" (time() v(in) v(out) 
+   #                           i(nmos1,out) i(pmos1,out) i(cout,out) )
+}
+
+Solve{  
+  #-Creating initial guess:
+  Coupled(Iterations=1000 LineSearchDamping=1e-8){ Poisson }
+  Coupled{ Poisson Electron Hole}
+
+  Quasistationary( 
+     InitialStep=1e-7 MinStep=1e-12 MaxStep=0.1 Increment=2 
+     
+     Goal{ Parameter=vg.dc Voltage= @Vmin@} 
+  ){ Coupled{Poisson Electron Hole}
+  }
+
+#-Vb sweep for Vd=0.0
+   NewCurrentFile=""
+   Quasistationary( 
+     InitialStep=1e-7 MinStep=1e-12 MaxStep=0.1 Increment=2 
+     
+     Goal{ Parameter=vg.dc Voltage= @Vmax@}
+    ) {ACCoupled (
+     StartFrequency=1e6 EndFrequency=1e6 NumberOfPoints=1 Decade
+     Node(s d g b) Exclude =(vs vd vg vb)
+     ACCompute (Time=(Range=(0 1) Intervals=50))
+     ) {Poisson Electron Hole}
+}
+} 
+
+   
